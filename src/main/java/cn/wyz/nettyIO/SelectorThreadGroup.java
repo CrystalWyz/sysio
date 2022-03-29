@@ -15,6 +15,12 @@ public class SelectorThreadGroup {
     ServerSocketChannel serverSocketChannel = null;
     AtomicInteger xid = new AtomicInteger(0);
 
+    SelectorThreadGroup workGroup = this;
+
+    public void setWorkGroup(SelectorThreadGroup workGroup) {
+        this.workGroup = workGroup;
+    }
+
     public SelectorThreadGroup(int threadNum) {
         sts = new SelectorThread[threadNum];
         for (int i = 0; i < sts.length; i++) {
@@ -39,16 +45,31 @@ public class SelectorThreadGroup {
     }
 
     public void nextSelector(Channel channel) {
-        SelectorThread next = next();
-        // 线程间优雅的通信
-        next.channelQueue.add(channel);
-        // 唤醒线程
-        next.selector.wakeup();
+        try {
+            SelectorThread next;
+            if (channel instanceof ServerSocketChannel) {
+                next = next();
+                next.selectorThreadGroup = workGroup;
+            } else {
+                next = nextWorker();
+            }
+            // 线程间优雅的通信
+            next.channelQueue.put(channel);
+            // 唤醒线程
+            next.selector.wakeup();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private SelectorThread next() {
         int index = xid.getAndIncrement() % sts.length;
         return sts[index];
+    }
+
+    private SelectorThread nextWorker() {
+        int index = xid.getAndIncrement() % workGroup.sts.length;
+        return workGroup.sts[index];
     }
 }
 

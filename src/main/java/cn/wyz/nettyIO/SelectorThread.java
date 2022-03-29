@@ -98,7 +98,7 @@ public class SelectorThread implements Runnable {
             SocketChannel client = serverSocketChannel.accept();
             client.configureBlocking(false);
 
-            // choose a selector and register!!
+            // choose a selector and register
             selectorThreadGroup.nextSelector(client);
         } catch (IOException e) {
             e.printStackTrace();

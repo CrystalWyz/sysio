@@ -5,9 +5,10 @@ public class MainThread {
         // 启动器
 
         // 1. 创建IO Thread
-        SelectorThreadGroup selectorThreadGroup = new SelectorThreadGroup(3);
-//        SelectorThreadGroup selectorThreadGroup = new SelectorThreadGroup(3);
+        SelectorThreadGroup boss = new SelectorThreadGroup(3);
+        SelectorThreadGroup work = new SelectorThreadGroup(3);
+        boss.setWorkGroup(work);
         // 2. 注册
-        selectorThreadGroup.bind(9999);
+        boss.bind(9999);
     }
 }
